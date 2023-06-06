@@ -24,14 +24,12 @@ func NewMatrix(n, m int) Matrix {
 	}
 }
 
-func (m Matrix) FillRandom(n int) Matrix {
+func (m *Matrix) FillRandom(n int) {
 	for i := 0; i < m.Rows; i++ {
 		for j := 0; j < m.Columns; j++ {
-			m.Data[i][j] = rand.Intn(n) + 1
+			(*m).Data[i][j] = rand.Intn(n) + 1
 		}
 	}
-
-	return m
 }
 
 func (m Matrix) Print() {

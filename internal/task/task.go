@@ -37,7 +37,7 @@ func NewTask() Task {
 	if n < 1 {
 		log.Fatalln("Number must be greater than 0")
 	}
-	matrix = matrix.FillRandom(n)
+	matrix.FillRandom(n)
 
 	return Task{
 		Matrix:       matrix,
