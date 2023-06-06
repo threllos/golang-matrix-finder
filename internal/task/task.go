@@ -11,8 +11,8 @@ import (
 
 type Task struct {
 	Matrix       matrix.Matrix
-	Groups       []Group
-	MaxGroups    []Group
+	Groups       Groups
+	MaxGroups    Groups
 	MaxGroupSize int
 }
 
@@ -50,43 +50,56 @@ func NewTask() Task {
 func (t Task) Solve() Task {
 	directions := [4]Point{{1, 0}, {0, 1}, {-1, 0}, {0, -1}}
 	maxSize := 0
-
 	queue := set.NewSet[Block]()
 	visited := set.NewSet[Point]()
-	queue.Add(Block{0, 0, t.Matrix.Data[0][0]})
+	firstBlock := Block{
+		Point: Point{0, 0},
+		Color: t.Matrix.Data[0][0],
+	}
+	queue.Add(firstBlock)
 
 	for queue.Size() > 0 {
-		cur, _ := queue.Get()
+		cur, _ := queue.Pop()
 		group := NewGroup()
 		group.Color = cur.Color
 		stack := stack.NewStack[Block]()
 		stack.Push(cur)
 
 		for stack.Size() > 0 {
-			block, _ := stack.Pop()
-			point := Point{block.X, block.Y}
-			ok := visited.Exist(point)
-			if ok {
+			cur, _ := stack.Pop()
+			point := cur.Point
+
+			isVisited := visited.Exist(point)
+			if isVisited {
 				continue
 			}
+
 			visited.Add(point)
 			group.Append(point)
 
 			for _, dir := range directions {
 				next := point.Add(dir)
-				ok := visited.Exist(next)
-				if !ok && next.X >= 0 && next.X < t.Matrix.Columns && next.Y >= 0 && next.Y < t.Matrix.Rows {
+				isVisited := visited.Exist(next)
+				if isVisited {
+					continue
+				}
+
+				if next.X >= 0 && next.X < t.Matrix.Columns && next.Y >= 0 && next.Y < t.Matrix.Rows {
+					nextBlock := Block{
+						Point: Point{next.X, next.Y},
+						Color: t.Matrix.Data[next.Y][next.X],
+					}
+
 					if t.Matrix.Data[next.Y][next.X] == t.Matrix.Data[point.Y][point.X] {
-						stack.Push(Block{next.X, next.Y, t.Matrix.Data[next.Y][next.X]})
+						stack.Push(nextBlock)
 					} else {
-						queue.Add(Block{next.X, next.Y, t.Matrix.Data[next.Y][next.X]})
+						queue.Add(nextBlock)
 					}
 				}
 			}
 		}
-
-		queue.Remove(cur)
-		t.Groups = append(t.Groups, group)
+		
+		t.Groups.Append(group)
 		if group.Size > maxSize {
 			maxSize = group.Size
 		}
@@ -95,7 +108,7 @@ func (t Task) Solve() Task {
 	t.MaxGroupSize = maxSize
 	for _, group := range t.Groups {
 		if group.Size == maxSize {
-			t.MaxGroups = append(t.MaxGroups, group)
+			t.MaxGroups.Append(group)
 		}
 	}
 

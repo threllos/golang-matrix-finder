@@ -13,7 +13,6 @@ func (p Point) Add(dir Point) Point {
 }
 
 type Block struct {
-	X     int
-	Y     int
+	Point Point
 	Color int
 }
