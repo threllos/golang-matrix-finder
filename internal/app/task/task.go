@@ -5,6 +5,8 @@ import (
 	"log"
 
 	"github.com/threllos/golang-matrix-finder/pkg/matrix"
+	"github.com/threllos/golang-matrix-finder/pkg/set"
+	"github.com/threllos/golang-matrix-finder/pkg/stack"
 )
 
 type Task struct {
@@ -49,26 +51,25 @@ func (t Task) Solve() Task {
 	directions := [4]Point{{1, 0}, {0, 1}, {-1, 0}, {0, -1}}
 	maxSize := 0
 
-	queue := NewSetB()
-	visited := NewSetP()
-	queue = queue.Add(Block{0, 0, t.Blocks.Data[0][0]})
+	queue := set.NewSet[Block]()
+	visited := set.NewSet[Point]()
+	queue.Add(Block{0, 0, t.Blocks.Data[0][0]})
 
 	for queue.Size() > 0 {
 		cur, _ := queue.Get()
 		group := NewGroup()
 		group.Color = cur.Color
-		stack := NewStackB()
-		stack = stack.Push(cur)
+		stack := stack.NewStack[Block]()
+		stack.Push(cur)
 
 		for stack.Size() > 0 {
-			tmp, block, _ := stack.Pop()
+			block, _ := stack.Pop()
 			point := Point{block.X, block.Y}
 			ok := visited.Exist(point)
 			if ok {
-				stack = tmp
 				continue
 			}
-			visited = visited.Add(point)
+			visited.Add(point)
 			group.Append(point)
 
 			for _, dir := range directions {
@@ -76,16 +77,15 @@ func (t Task) Solve() Task {
 				ok := visited.Exist(next)
 				if !ok && next.X >= 0 && next.X < t.Blocks.Columns && next.Y >= 0 && next.Y < t.Blocks.Rows {
 					if t.Blocks.Data[next.Y][next.X] == t.Blocks.Data[point.Y][point.X] {
-						tmp = tmp.Push(Block{next.X, next.Y, t.Blocks.Data[next.Y][next.X]})
+						stack.Push(Block{next.X, next.Y, t.Blocks.Data[next.Y][next.X]})
 					} else {
-						queue = queue.Add(Block{next.X, next.Y, t.Blocks.Data[next.Y][next.X]})
+						queue.Add(Block{next.X, next.Y, t.Blocks.Data[next.Y][next.X]})
 					}
 				}
 			}
-			stack = tmp
 		}
 
-		queue = queue.Delete(cur)
+		queue.Remove(cur)
 		t.Groups = append(t.Groups, group)
 		if group.Size > maxSize {
 			maxSize = group.Size
