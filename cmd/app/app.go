@@ -1,6 +1,6 @@
 package main
 
-import "github.com/threllos/golang-matrix-finder/internal/app/task"
+import "github.com/threllos/golang-matrix-finder/internal/task"
 
 func main() {
 	t := task.NewTask()

@@ -8,7 +8,7 @@ import (
 
 func BenchmarkTask(b *testing.B) {
 	m := matrix.NewMatrix(10, 10)
-	t := Task{Blocks: m}
+	t := Task{Matrix: m}
 
 	for i := 0; i < b.N; i++ {
 		t.Solve()

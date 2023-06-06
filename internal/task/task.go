@@ -10,7 +10,7 @@ import (
 )
 
 type Task struct {
-	Blocks       matrix.Matrix
+	Matrix       matrix.Matrix
 	Groups       []Group
 	MaxGroups    []Group
 	MaxGroupSize int
@@ -19,30 +19,30 @@ type Task struct {
 func NewTask() Task {
 	var r, c, n int
 
-	fmt.Print("Input sizes row and column: ")
+	fmt.Print("Enter the number of rows and columns: ")
 	_, err := fmt.Scanf("%d %d", &r, &c)
 	if err != nil {
-		log.Fatalf("Incorrect input size: %v\n", err.Error())
+		log.Fatalf("Incorrect entered number: %v\n", err.Error())
 	}
 	if r < 1 || c < 1 {
-		log.Fatalln("Size must over 0")
+		log.Fatalln("Numbers must be greater than 0")
 	}
-	data := matrix.NewMatrix(r, c)
+	matrix := matrix.NewMatrix(r, c)
 
 	fmt.Print("Input colors size: ")
 	_, err = fmt.Scanf("%d", &n)
 	if err != nil {
-		log.Fatalf("Incorrect input size: %v\n", err.Error())
+		log.Fatalf("Incorrect entered number: %v\n", err.Error())
 	}
 	if n < 1 {
-		log.Fatalln("Colors size must over 0")
+		log.Fatalln("Number must be greater than 0")
 	}
-	data = data.FillRandom(n)
+	matrix = matrix.FillRandom(n)
 
 	return Task{
-		Blocks:       data,
-		Groups:       make([]Group, 0),
-		MaxGroups:    make([]Group, 0),
+		Matrix:       matrix,
+		Groups:       NewGroups(),
+		MaxGroups:    NewGroups(),
 		MaxGroupSize: 0,
 	}
 }
@@ -53,7 +53,7 @@ func (t Task) Solve() Task {
 
 	queue := set.NewSet[Block]()
 	visited := set.NewSet[Point]()
-	queue.Add(Block{0, 0, t.Blocks.Data[0][0]})
+	queue.Add(Block{0, 0, t.Matrix.Data[0][0]})
 
 	for queue.Size() > 0 {
 		cur, _ := queue.Get()
@@ -75,11 +75,11 @@ func (t Task) Solve() Task {
 			for _, dir := range directions {
 				next := point.Add(dir)
 				ok := visited.Exist(next)
-				if !ok && next.X >= 0 && next.X < t.Blocks.Columns && next.Y >= 0 && next.Y < t.Blocks.Rows {
-					if t.Blocks.Data[next.Y][next.X] == t.Blocks.Data[point.Y][point.X] {
-						stack.Push(Block{next.X, next.Y, t.Blocks.Data[next.Y][next.X]})
+				if !ok && next.X >= 0 && next.X < t.Matrix.Columns && next.Y >= 0 && next.Y < t.Matrix.Rows {
+					if t.Matrix.Data[next.Y][next.X] == t.Matrix.Data[point.Y][point.X] {
+						stack.Push(Block{next.X, next.Y, t.Matrix.Data[next.Y][next.X]})
 					} else {
-						queue.Add(Block{next.X, next.Y, t.Blocks.Data[next.Y][next.X]})
+						queue.Add(Block{next.X, next.Y, t.Matrix.Data[next.Y][next.X]})
 					}
 				}
 			}
@@ -104,13 +104,13 @@ func (t Task) Solve() Task {
 
 func (t Task) Result() {
 	fmt.Println("Generated matrix:")
-	t.Blocks.Print()
+	t.Matrix.Print()
 
 	fmt.Printf("Max group size: %d\n", t.MaxGroupSize)
-	fmt.Printf("Groups len: %d\n", len(t.MaxGroups))
+	fmt.Printf("Number of groups: %d\n", len(t.MaxGroups))
 
 	for i, group := range t.MaxGroups {
-		m := matrix.NewMatrix(t.Blocks.Rows, t.Blocks.Columns)
+		m := matrix.NewMatrix(t.Matrix.Rows, t.Matrix.Columns)
 		for _, p := range group.Group {
 			m.Data[p.Y][p.X] = group.Color
 		}
